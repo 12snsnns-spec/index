@@ -2,92 +2,93 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>EReN Store | لوحة الأكواد</title>
+    <title>EReN Private System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --main-color: #00b4d8; --bg-dark: #121212; --card-bg: #1e1e1e; }
-        body { background-color: var(--bg-dark); color: white; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: var(--card-bg); width: 90%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.7); border: 1px solid #333; }
-        h1 { color: var(--main-color); margin-bottom: 5px; font-size: 28px; }
-        .subtitle { color: #888; margin-bottom: 25px; font-size: 14px; }
-        
-        .section { background: #252525; padding: 15px; border-radius: 12px; margin-bottom: 20px; border-right: 4px solid var(--main-color); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #1a1a1a; color: white; box-sizing: border-box; text-align: center; }
-        
-        button { width: 100%; padding: 12px; background: var(--main-color); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; }
-        button:hover { background: #007791; transform: translateY(-2px); }
-        
-        .search-btn { background: #444; margin-top: 10px; }
-        .search-btn:hover { background: #555; }
-
-        #result, #searchResult { margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 0.9em; line-height: 1.6; }
-        .success { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
-        .error { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        body { background-color: #000; color: #e67e22; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .admin-panel { display: none; background: #1a1a1a; width: 90%; max-width: 500px; padding: 30px; border-radius: 15px; border-top: 5px solid #e67e22; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; }
+        button { width: 100%; padding: 12px; background: #e67e22; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        .code-item { background: #222; padding: 10px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 3px solid #2ecc71; }
+        .del-btn { background: #c0392b; width: auto; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>EReN Store</h1>
-    <div class="subtitle">نظام إدارة أكواد العملاء</div>
-
-    <div class="section">
-        <strong>تسجيل كود جديد</strong>
-        <input type="text" id="customerCode" placeholder="أدخل الكود (مثل pay-0001)">
-        <button onclick="saveCode()">تفعيل وحفظ الكود</button>
-        <div id="result"></div>
+    <div id="lockScreen" class="login-box">
+        <h2 style="color: #e67e22;">EReN Private System</h2>
+        <input type="password" id="passInput" placeholder="أدخل رمز الدخول الخاص بك">
+        <button onclick="unlock()">دخول النظام</button>
     </div>
 
-    <hr>
-
-    <div class="section" style="border-right-color: #ff9f43;">
-        <strong>البحث عن كود عميل</strong>
-        <input type="text" id="searchCode" placeholder="ابحث عن كود (pay-0000)">
-        <button class="search-btn" onclick="searchForCode()">بحث الآن</button>
-        <div id="searchResult"></div>
-    </div>
-</div>
-
-<script>
-    // دالة لحفظ الكود في "قاعدة بيانات" المتصفح
-    function saveCode() {
-        const code = document.getElementById('customerCode').value.trim();
-        const resDiv = document.getElementById('result');
-
-        if (code === "") {
-            resDiv.innerHTML = "<div class='error'>الرجاء إدخال كود!</div>";
-            return;
-        }
-
-        const expiryDate = new Date();
-        expiryDate.setFullYear(expiryDate.getFullYear() + 1); // الصلاحية سنة
-        const expiryStr = expiryDate.toLocaleDateString('ar-SA');
-
-        // جلب الأكواد المخزنة مسبقاً أو إنشاء قائمة جديدة
-        let allCodes = JSON.parse(localStorage.getItem('eren_all_codes')) || {};
+    <div id="mainPanel" class="admin-panel">
+        <h2 style="margin-top:0;">إدارة أكواد ايرين</h2>
         
-        // حفظ الكود الجديد مع تاريخه
-        allCodes[code] = expiryStr;
-        localStorage.setItem('eren_all_codes', JSON.stringify(allCodes));
+        <label>إضافة كود جديد (صالح لـ 14 يوم):</label>
+        <input type="text" id="codeId" placeholder="pay-0001">
+        <button onclick="saveNew()">+ حفظ الكود</button>
 
-        resDiv.innerHTML = `<div class='success'>تم تفعيل الكود <b>${code}</b> بنجاح!<br>ينتهي في: ${expiryStr}</div>`;
-        document.getElementById('customerCode').value = "";
-    }
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
-    // دالة البحث عن الكود
-    function searchForCode() {
-        const query = document.getElementById('searchCode').value.trim();
-        const sResult = document.getElementById('searchResult');
-        let allCodes = JSON.parse(localStorage.getItem('eren_all_codes')) || {};
+        <label>ابحث عن كود سابق:</label>
+        <input type="text" id="search" placeholder="اكتب رقم الكود.." onkeyup="showList(this.value)">
 
-        if (allCodes[query]) {
-            sResult.innerHTML = `<div class='success'>✅ الكود موجود!<br>رقم الكود: ${query}<br>تاريخ الانتهاء: ${allCodes[query]}</div>`;
-        } else {
-            sResult.innerHTML = `<div class='error'>❌ الكود غير موجود أو غير مفعل.</div>`;
+        <div id="codesDisplay" style="margin-top:20px;">
+            <strong>الأكواد المسجلة (14 يوم):</strong>
+            <div id="listBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const SECRET_KEY = "1234"; 
+
+        function unlock() {
+            if(document.getElementById('passInput').value === SECRET_KEY) {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('mainPanel').style.display = 'block';
+                showList();
+            } else { alert("الرمز خطأ!"); }
         }
-    }
-</script>
 
+        function saveNew() {
+            const val = document.getElementById('codeId').value.trim();
+            if(!val) return;
+            let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
+            
+            // --- تعديل الـ 14 يوم هنا ---
+            const d = new Date();
+            d.setDate(d.getDate() + 14); // إضافة 14 يوم بالضبط
+            const expiry = d.toLocaleDateString('ar-SA');
+            // --------------------------
+
+            db.push({id: val, expire: expiry});
+            localStorage.setItem('eren_private_db', JSON.stringify(db));
+            document.getElementById('codeId').value = "";
+            showList();
+        }
+
+        function showList(filter = "") {
+            const container = document.getElementById('listBody');
+            container.innerHTML = "";
+            let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
+            db.forEach((item, i) => {
+                if(item.id.includes(filter)) {
+                    container.innerHTML += `
+                        <div class="code-item">
+                            <span><b>${item.id}</b><br><small>ينتهي في: ${item.expire}</small></span>
+                            <button class="del-btn" onclick="remove(${i})">حذف</button>
+                        </div>`;
+                }
+            });
+        }
+
+        function remove(i) {
+            let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
+            db.splice(i, 1);
+            localStorage.setItem('eren_private_db', JSON.stringify(db));
+            showList();
+        }
+    </script>
 </body>
 </html>
