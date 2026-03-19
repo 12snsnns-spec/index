@@ -2,65 +2,75 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>EReN Private System</title>
+    <title>EReN Admin | 0615</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background-color: #000; color: #e67e22; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .admin-panel { display: none; background: #1a1a1a; width: 90%; max-width: 500px; padding: 30px; border-radius: 15px; border-top: 5px solid #e67e22; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; }
-        button { width: 100%; padding: 12px; background: #e67e22; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-        .code-item { background: #222; padding: 10px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 3px solid #2ecc71; }
-        .del-btn { background: #c0392b; width: auto; padding: 5px 10px; font-size: 12px; }
+        body { background-color: #080808; color: #e67e22; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: #151515; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; box-shadow: 0 0 20px rgba(230, 126, 34, 0.1); }
+        .admin-panel { display: none; background: #151515; width: 95%; max-width: 450px; padding: 25px; border-radius: 15px; border-top: 4px solid #e67e22; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #e67e22; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        button:hover { background: #d35400; }
+        .code-item { background: #202020; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #2ecc71; animation: fadeIn 0.3s; }
+        .del-btn { background: #c0392b; width: auto; padding: 6px 12px; font-size: 12px; margin: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="lockScreen" class="login-box">
-        <h2 style="color: #e67e22;">EReN Private System</h2>
-        <input type="password" id="passInput" placeholder="أدخل رمز الدخول الخاص بك">
-        <button onclick="unlock()">دخول النظام</button>
+        <h2 style="color: #e67e22; margin-bottom: 20px;">EReN System</h2>
+        <input type="password" id="passInput" placeholder="أدخل الرمز السري">
+        <button onclick="unlock()">دخول</button>
     </div>
 
     <div id="mainPanel" class="admin-panel">
-        <h2 style="margin-top:0;">إدارة أكواد ايرين</h2>
+        <h2 style="margin-top:0; color: #fff;">لوحة ايرين الخاصة</h2>
         
-        <label>إضافة كود جديد (صالح لـ 14 يوم):</label>
-        <input type="text" id="codeId" placeholder="pay-0001">
-        <button onclick="saveNew()">+ حفظ الكود</button>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <small style="color: #888;">إضافة كود جديد (صلاحية 14 يوم):</small>
+            <input type="text" id="codeId" placeholder="مثال: pay-0001">
+            <button onclick="saveNew()">+ حفظ في النظام</button>
+        </div>
 
         <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
 
-        <label>ابحث عن كود سابق:</label>
-        <input type="text" id="search" placeholder="اكتب رقم الكود.." onkeyup="showList(this.value)">
+        <div style="text-align: right;">
+            <small style="color: #888;">البحث عن كود:</small>
+            <input type="text" id="search" placeholder="اكتب اسم الكود للبحث.." onkeyup="showList(this.value)">
+        </div>
 
-        <div id="codesDisplay" style="margin-top:20px;">
-            <strong>الأكواد المسجلة (14 يوم):</strong>
+        <div id="codesDisplay" style="margin-top:20px; text-align: right;">
+            <strong style="font-size: 14px;">الأكواد النشطة:</strong>
             <div id="listBody"></div>
         </div>
     </div>
 
     <script>
-        const SECRET_KEY = "1234"; 
+        // الرمز السري الجديد
+        const SECRET_KEY = "0615"; 
 
         function unlock() {
-            if(document.getElementById('passInput').value === SECRET_KEY) {
+            const input = document.getElementById('passInput').value;
+            if(input === SECRET_KEY) {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
                 showList();
-            } else { alert("الرمز خطأ!"); }
+            } else { 
+                alert("الرمز السري خطأ!"); 
+            }
         }
 
         function saveNew() {
             const val = document.getElementById('codeId').value.trim();
             if(!val) return;
+            
             let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
             
-            // --- تعديل الـ 14 يوم هنا ---
+            // حساب 14 يوم بالضبط
             const d = new Date();
-            d.setDate(d.getDate() + 14); // إضافة 14 يوم بالضبط
+            d.setDate(d.getDate() + 14); 
             const expiry = d.toLocaleDateString('ar-SA');
-            // --------------------------
 
             db.push({id: val, expire: expiry});
             localStorage.setItem('eren_private_db', JSON.stringify(db));
@@ -72,20 +82,31 @@
             const container = document.getElementById('listBody');
             container.innerHTML = "";
             let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
-            db.forEach((item, i) => {
-                if(item.id.includes(filter)) {
-                    container.innerHTML += `
-                        <div class="code-item">
-                            <span><b>${item.id}</b><br><small>ينتهي في: ${item.expire}</small></span>
-                            <button class="del-btn" onclick="remove(${i})">حذف</button>
-                        </div>`;
-                }
+            
+            // تصفية الأكواد بناءً على البحث
+            const filteredDb = db.filter(item => item.id.includes(filter));
+
+            if (filteredDb.length === 0) {
+                container.innerHTML = "<p style='color:#555; font-size:12px;'>لا توجد أكواد حالياً</p>";
+                return;
+            }
+
+            filteredDb.reverse().forEach((item, i) => {
+                // ملاحظة: الحذف هنا يحتاج معالجة الـ Index الأصلي
+                container.innerHTML += `
+                    <div class="code-item">
+                        <div style="text-align: right;">
+                            <span style="color: #fff; font-weight: bold;">${item.id}</span><br>
+                            <small style="color: #888;">ينتهي في: ${item.expire}</small>
+                        </div>
+                        <button class="del-btn" onclick="removeCodeById('${item.id}')">حذف</button>
+                    </div>`;
             });
         }
 
-        function remove(i) {
+        function removeCodeById(id) {
             let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
-            db.splice(i, 1);
+            db = db.filter(item => item.id !== id);
             localStorage.setItem('eren_private_db', JSON.stringify(db));
             showList();
         }
