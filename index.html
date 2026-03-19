@@ -6,14 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { background-color: #080808; color: #e67e22; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-box { background: #151515; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; box-shadow: 0 0 20px rgba(230, 126, 34, 0.1); }
+        .login-box { background: #151515; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; box-shadow: 0 0 20px rgba(230, 126, 34, 0.1); transition: 0.3s; }
         .admin-panel { display: none; background: #151515; width: 95%; max-width: 450px; padding: 25px; border-radius: 15px; border-top: 4px solid #e67e22; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; font-size: 16px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #e67e22; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
         button:hover { background: #d35400; }
-        .code-item { background: #202020; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #2ecc71; animation: fadeIn 0.3s; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        .code-item { background: #202020; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #2ecc71; }
         .del-btn { background: #c0392b; width: auto; padding: 6px 12px; font-size: 12px; margin: 0; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* تصميم رسالة التحذير */
+        #warningMsg { display: none; color: #ff4d4d; background: rgba(255, 77, 77, 0.1); border: 1px solid #ff4d4d; padding: 15px; border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 14px; }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-10px);} 75% {transform: translateX(10px);} }
     </style>
 </head>
 <body>
@@ -21,58 +26,71 @@
     <div id="lockScreen" class="login-box">
         <h2 style="color: #e67e22; margin-bottom: 20px;">EReN System</h2>
         <input type="password" id="passInput" placeholder="أدخل الرمز السري">
-        <button onclick="unlock()">دخول</button>
+        <button id="loginBtn" onclick="unlock()">دخول</button>
+        
+        <div id="warningMsg">
+            ⚠️ تحذير: تم تجاوز عدد المحاولات!<br>يرجى الخروج وإغلاق الصفحة فوراً.
+        </div>
+        <div id="attemptsText" style="color: #555; font-size: 12px; margin-top: 10px;">المحاولات المتبقية: 3</div>
     </div>
 
     <div id="mainPanel" class="admin-panel">
         <h2 style="margin-top:0; color: #fff;">لوحة ايرين الخاصة</h2>
-        
         <div style="text-align: right; margin-bottom: 15px;">
-            <small style="color: #888;">إضافة كود جديد (صلاحية 14 يوم):</small>
+            <small style="color: #888;">إضافة كود جديد (14 يوم):</small>
             <input type="text" id="codeId" placeholder="مثال: pay-0001">
             <button onclick="saveNew()">+ حفظ في النظام</button>
         </div>
-
         <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-
         <div style="text-align: right;">
             <small style="color: #888;">البحث عن كود:</small>
-            <input type="text" id="search" placeholder="اكتب اسم الكود للبحث.." onkeyup="showList(this.value)">
+            <input type="text" id="search" placeholder="بحث.." onkeyup="showList(this.value)">
         </div>
-
-        <div id="codesDisplay" style="margin-top:20px; text-align: right;">
-            <strong style="font-size: 14px;">الأكواد النشطة:</strong>
-            <div id="listBody"></div>
-        </div>
+        <div id="listBody" style="margin-top:20px;"></div>
     </div>
 
     <script>
-        // الرمز السري الجديد
         const SECRET_KEY = "0615"; 
+        let attempts = 0;
 
         function unlock() {
             const input = document.getElementById('passInput').value;
+            const lockBox = document.getElementById('lockScreen');
+            const warn = document.getElementById('warningMsg');
+            const attText = document.getElementById('attemptsText');
+
             if(input === SECRET_KEY) {
-                document.getElementById('lockScreen').style.display = 'none';
+                lockBox.style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
                 showList();
             } else { 
-                alert("الرمز السري خطأ!"); 
+                attempts++;
+                let remaining = 3 - attempts;
+                
+                // اهتزاز المربع عند الخطأ
+                lockBox.classList.add('shake');
+                setTimeout(() => lockBox.classList.remove('shake'), 400);
+
+                if (attempts >= 3) {
+                    document.getElementById('passInput').disabled = true;
+                    document.getElementById('loginBtn').disabled = true;
+                    warn.style.display = 'block';
+                    attText.style.color = '#ff4d4d';
+                    attText.innerHTML = "المحاولات المتبقية: 0";
+                    alert("⚠️ تم حظر الدخول بسبب محاولات خاطئة!");
+                } else {
+                    attText.innerHTML = "المحاولات المتبقية: " + remaining;
+                    alert("الرمز السري خطأ! تبقى لك " + remaining + " محاولات.");
+                }
             }
         }
 
         function saveNew() {
             const val = document.getElementById('codeId').value.trim();
             if(!val) return;
-            
             let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
-            
-            // حساب 14 يوم بالضبط
-            const d = new Date();
-            d.setDate(d.getDate() + 14); 
-            const expiry = d.toLocaleDateString('ar-SA');
-
-            db.push({id: val, expire: expiry});
+            const d = new Date(); d.setDate(d.getDate() + 14); 
+            db.push({id: val, expire: d.toLocaleDateString('ar-SA')});
             localStorage.setItem('eren_private_db', JSON.stringify(db));
             document.getElementById('codeId').value = "";
             showList();
@@ -82,22 +100,12 @@
             const container = document.getElementById('listBody');
             container.innerHTML = "";
             let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
-            
-            // تصفية الأكواد بناءً على البحث
-            const filteredDb = db.filter(item => item.id.includes(filter));
-
-            if (filteredDb.length === 0) {
-                container.innerHTML = "<p style='color:#555; font-size:12px;'>لا توجد أكواد حالياً</p>";
-                return;
-            }
-
-            filteredDb.reverse().forEach((item, i) => {
-                // ملاحظة: الحذف هنا يحتاج معالجة الـ Index الأصلي
+            db.filter(item => item.id.includes(filter)).reverse().forEach((item) => {
                 container.innerHTML += `
                     <div class="code-item">
                         <div style="text-align: right;">
                             <span style="color: #fff; font-weight: bold;">${item.id}</span><br>
-                            <small style="color: #888;">ينتهي في: ${item.expire}</small>
+                            <small style="color: #888;">ينتهي: ${item.expire}</small>
                         </div>
                         <button class="del-btn" onclick="removeCodeById('${item.id}')">حذف</button>
                     </div>`;
