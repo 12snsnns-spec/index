@@ -31,49 +31,86 @@
     </div>
 
     <script>
-<script>
-    const SECRET_KEY = "0615";
-    const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE"; 
-    const MY_DISCORD_ID = "1226978647295000627"; 
+        const SECRET_KEY = "0615";
+        const DISCORD_WEBHOOK = "ضع_رابط_الويب_هوك_هنا"; 
+        const MY_DISCORD_ID = "ضع_الآيدي_حقك_هنا"; // حط الـ ID حقك عشان يمنشنك
 
-    async function trackVisitor() {
-        if(!DISCORD_WEBHOOK || DISCORD_WEBHOOK.includes("ضع_رابط")) return;
+        async function trackVisitor() {
+            if(DISCORD_WEBHOOK === "ضع_رابط_الويب_هوك_هنا") return;
 
-        let locationInfo = "تعذر جلب الموقع";
-        let ipAddr = "غير معروف";
-
-        try {
-            // محاولة جلب البيانات
-            const response = await fetch('https://ipapi.co/json/');
-            if(response.ok) {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
-                ipAddr = data.ip;
-                locationInfo = `${data.city}, ${data.country_name}`;
+
+                const msg = {
+                    content: `<@${MY_DISCORD_ID}> ⚠️ **انتبه! فيه شخص فتح رابط اللوحة الآن**`,
+                    username: "EReN Security Bot",
+                    embeds: [{
+                        title: "تقرير دخول مشبوه",
+                        color: 16711680,
+                        fields: [
+                            { name: "الـ IP", value: data.ip || "غير معروف", inline: true },
+                            { name: "الموقع", value: `${data.city}, ${data.country_name}`, inline: true },
+                            { name: "الجهاز", value: navigator.userAgent.substring(0, 50), inline: false }
+                        ],
+                        footer: { text: "حماية ايرين" },
+                        timestamp: new Date()
+                    }]
+                };
+
+                fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+            } catch (e) { console.log("Track error"); }
+        }
+
+        function unlock() {
+            if(document.getElementById('passInput').value === SECRET_KEY) {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('mainPanel').style.display = 'block';
+                showList();
+            } else { alert("الرمز خطأ!"); }
+        }
+
+        async function sendLog(title, color, code, expiry = "") {
+            const msg = {
+                username: "EReN Log",
+                embeds: [{
+                    title: title,
+                    color: color,
+                    fields: [{ name: "الكود", value: code, inline: true }],
+                    timestamp: new Date()
+                }]
+            };
+            if(expiry) msg.embeds[0].fields.push({ name: "الانتهاء", value: expiry, inline: true });
+            fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+        }
+
+        function handleAction(type, codeParam = "") {
+            let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
+            if(type === 'add') {
+                const val = document.getElementById('codeId').value.trim();
+                if(!val) return;
+                const d = new Date(); d.setDate(d.getDate() + 14);
+                const expiry = d.toLocaleDateString('ar-SA');
+                db.push({id: val, expire: expiry});
+                localStorage.setItem('eren_private_db', JSON.stringify(db));
+                sendLog("✅ إضافة كود", 3066993, val, expiry);
+                document.getElementById('codeId').value = "";
+            } else {
+                db = db.filter(x => x.id !== codeParam);
+                localStorage.setItem('eren_private_db', JSON.stringify(db));
+                sendLog("🗑️ حذف كود", 15158332, codeParam);
             }
-        } catch (e) { console.log("Skip location fetch"); }
+            showList();
+        }
 
-        const msg = {
-            content: `<@${MY_DISCORD_ID}> ⚠️ **تنبيه دخول للوحة EReN**`,
-            embeds: [{
-                title: "تقرير دخول جديد",
-                color: 16711680,
-                fields: [
-                    { name: "الـ IP", value: ipAddr, inline: true },
-                    { name: "الموقع", value: locationInfo, inline: true },
-                    { name: "الجهاز", value: navigator.userAgent.slice(0, 100), inline: false }
-                ],
-                timestamp: new Date()
-            }]
-        };
-
-        // إرسال للديسكورد
-        fetch(DISCORD_WEBHOOK, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(msg)
-        }).then(() => console.log("Sent to Discord"))
-          .catch(err => console.error("Discord Error:", err));
-    }
-</script>
+        function showList() {
+            const container = document.getElementById('listBody');
+            container.innerHTML = "";
+            let db = JSON.parse(localStorage.getItem('eren_private_db')) || [];
+            db.reverse().forEach(item => {
+                container.innerHTML += `<div class="code-item"><span>${item.id}<br><small>${item.expire}</small></span><button class="del-btn" onclick="handleAction('delete', '${item.id}')">حذف</button></div>`;
+            });
+        }
+    </script>
 </body>
 </html>
