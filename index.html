@@ -33,87 +33,87 @@
         <input type="text" id="newCode" placeholder="أضف كود جديد هنا..">
         <button onclick="addCode()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer;">+ إضافة للنظام</button>
         <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-        <div id="codesList"></div>
+        <div id="listBody"></div>
     </div>
 
     <script>
-        // الويب هوكات الموزعة
-        const HOOK_OPEN = "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE";
-        const HOOK_LOGIN = "https://discord.com/api/webhooks/1484351959585525841/ZjhQIJCpA13J8zmqpr6zMNWGDMojVEg7Dn3OAVlhUpRunFJ-MYq2Zxf6kxmFVxjkQxzx";
-        const HOOK_PASS = "https://discord.com/api/webhooks/1484352253836923022/AieODQwZH0o7XGe1u6ylvhc0yk5ySci7sb2IHOqYqfGm5I55Jv94Jpwm3cYsFLK-UU-L";
-        const HOOK_CODES = "https://discord.com/api/webhooks/1484352399479931063/HXc4SNM70_RheiZsCAdHNj_JPAnGaHEvuS2qsgwFj8Xx0pO0xmdUtiLr-MWqCPBhMy7-";
+        // تنظيف الروابط من أي مسافات مخفية
+        const HOOK_OPEN = "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE".trim();
+        const HOOK_LOGIN = "https://discord.com/api/webhooks/1484351959585525841/ZjhQIJCpA13J8zmqpr6zMNWGDMojVEg7Dn3OAVlhUpRunFJ-MYq2Zxf6kxmFVxjkQxzx".trim();
+        const HOOK_PASS = "https://discord.com/api/webhooks/1484352253836923022/AieODQwZH0o7XGe1u6ylvhc0yk5ySci7sb2IHOqYqfGm5I55Jv94Jpwm3cYsFLK-UU-L".trim();
+        const HOOK_CODES = "https://discord.com/api/webhooks/1484352399479931063/HXc4SNM70_RheiZsCAdHNj_JPAnGaHEvuS2qsgwFj8Xx0pO0xmdUtiLr-MWqCPBhMy7-".trim();
         
         const AUTH_LINK = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify";
-        const MY_ID = "1226978647295000627";
         const PASS = "0615";
         let user = null;
 
         function login() { window.location.href = AUTH_LINK; }
 
-        async function sendLog(hook, msg) {
-            await fetch(hook, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ content: `<@${MY_ID}> ${msg}` })
-            });
+        async function sendToDiscord(hook, msg) {
+            try {
+                await fetch(hook, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ content: `<@1226978647295000627> ${msg}` })
+                });
+            } catch (e) { console.log("Webhook error"); }
         }
 
         async function checkDiscordLogin() {
-            // أول ما يفتح الرابط يرسل لوق صامت
             if (!window.location.hash) {
-                sendLog(HOOK_OPEN, "🔗 **واحد فتح الرابط الحين (مرحلة تسجيل الدخول)**");
+                await sendToDiscord(HOOK_OPEN, "🔗 **واحد فتح الرابط الحين.. ننتظر يسجل دخول.**");
             }
 
             const fragment = new URLSearchParams(window.location.hash.slice(1));
             const token = fragment.get('access_token');
+            
             if (token) {
                 try {
                     const res = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${token}` } });
                     user = await res.json();
                     
-                    sendLog(HOOK_LOGIN, `👤 **تم تسجيل الدخول بالديسكورد**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
+                    await sendToDiscord(HOOK_LOGIN, `👤 **تم تسجيل الدخول!**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
 
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('lockScreen').style.display = 'block';
                     window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (e) { console.error("Login Failed"); }
+                } catch (e) { alert("فشل جلب بيانات ديسكورد"); }
             }
         }
 
-        function verifyPass() {
+        async function verifyPass() {
             const input = document.getElementById('passInput').value;
             if(input === PASS) {
-                sendLog(HOOK_PASS, `✅ **دخل الرمز السري صح!**\n**المستخدم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
+                await sendToDiscord(HOOK_PASS, `✅ **دخل الرمز السري صح!**\n**المستخدم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
                 document.getElementById('userTag').innerText = `أهلاً بك، ${user.username}`;
                 renderCodes();
             } else {
-                sendLog(HOOK_PASS, `❌ **محاولة دخول فاشلة (رمز خطأ: ${input})**\n**المستخدم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
+                await sendToDiscord(HOOK_PASS, `❌ **محاولة فاشلة!**\n**المستخدم:** ${user.username}\n**الأيدي:** \`${user.id}\`\n**الرمز المجرب:** \`${input}\``);
                 alert("الرمز خطأ!");
             }
         }
 
-        function addCode() {
+        async function addCode() {
             let val = document.getElementById('newCode').value.trim();
             if(!val) return;
             let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
-            let newObj = { id: Date.now(), text: val };
-            db.push(newObj);
+            db.push({ id: Date.now(), text: val });
             localStorage.setItem('eren_codes', JSON.stringify(db));
             
-            sendLog(HOOK_CODES, `➕ **إضافة كود جديد**\n**بواسطة:** ${user.username} (\`${user.id}\`)\n**الكود:** \`${val}\``);
+            await sendToDiscord(HOOK_CODES, `➕ **كود جديد**\n**بواسطة:** ${user.username}\n**الكود:** \`${val}\``);
             
             document.getElementById('newCode').value = "";
             renderCodes();
         }
 
-        function delCode(uniqueId, text) {
+        async function delCode(uniqueId, text) {
             let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
             db = db.filter(item => item.id !== uniqueId);
             localStorage.setItem('eren_codes', JSON.stringify(db));
             
-            sendLog(HOOK_CODES, `🗑️ **حذف كود**\n**بواسطة:** ${user.username} (\`${user.id}\`)\n**الكود المحذوف:** \`${text}\``);
+            await sendToDiscord(HOOK_CODES, `🗑️ **تم الحذف**\n**بواسطة:** ${user.username}\n**المحذوف:** \`${text}\``);
             
             renderCodes();
         }
@@ -124,7 +124,7 @@
             [...db].reverse().forEach(item => {
                 html += `<div class="code-item"><span>${item.text}</span><button class="del-btn" onclick="delCode(${item.id}, '${item.text}')">حذف</button></div>`;
             });
-            document.getElementById('codesList').innerHTML = html || "<p style='color:#444; text-align:center;'>لا توجد أكواد</p>";
+            document.getElementById('listBody').innerHTML = html || "<p style='color:#444;'>لا يوجد شيء</p>";
         }
     </script>
 </body>
