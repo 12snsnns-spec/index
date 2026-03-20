@@ -2,13 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>EReN Admin | 0615</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EReN System</title> <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { background-color: #080808; color: #e67e22; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .box { background: #151515; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .btn-discord { background: #5865F2; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; transition: 0.3s; }
-        .btn-discord:hover { background: #4752c4; }
         .admin-panel { display: none; background: #151515; width: 95%; max-width: 450px; padding: 25px; border-radius: 15px; border-top: 4px solid #e67e22; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
         .code-item { background: #202020; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #2ecc71; }
@@ -19,12 +17,12 @@
 
     <div id="loginScreen" class="box">
         <h2 style="color: #fff; margin-bottom: 10px;">نظام EReN</h2>
-        <p style="color: #888; font-size: 14px;">يرجى تسجيل الدخول بالديسكورد للمتابعة</p>
+        <p style="color: #888; font-size: 14px;">سجل دخولك بالديسكورد للمتابعة</p>
         <button class="btn-discord" onclick="login()">Login with Discord</button>
     </div>
 
     <div id="lockScreen" class="box" style="display: none;">
-        <h2 style="color: #e67e22; margin-bottom: 20px;">التحقق من الرمز</h2>
+        <h2 style="color: #e67e22; margin-bottom: 20px;">التحقق من الهوية</h2>
         <input type="password" id="passInput" placeholder="أدخل الرمز السري">
         <button onclick="verifyPass()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">دخول</button>
     </div>
@@ -32,47 +30,36 @@
     <div id="mainPanel" class="admin-panel">
         <h3 id="userTag" style="color: #fff; text-align: center; margin-bottom: 20px;"></h3>
         <input type="text" id="newCode" placeholder="أضف كود جديد هنا..">
-        <button onclick="addCode()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">+ إضافة للنظام</button>
+        <button onclick="addCode()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer;">+ إضافة للنظام</button>
         <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
         <div id="codesList"></div>
     </div>
 
     <script>
-        // الرابط اللي أرسلته أنت حطيته هنا ✅
         const AUTH_LINK = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify";
         const WEBHOOK = "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE";
         const MY_ID = "1226978647295000627";
         const PASS = "0615";
         let user = null;
 
-        function login() {
-            window.location.href = AUTH_LINK;
-        }
+        function login() { window.location.href = AUTH_LINK; }
 
         async function checkDiscordLogin() {
-            // سحب التوكن من الرابط بعد ما يرجع من الديسكورد
             const fragment = new URLSearchParams(window.location.hash.slice(1));
             const token = fragment.get('access_token');
-
             if (token) {
                 try {
-                    const res = await fetch('https://discord.com/api/users/@me', {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const res = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${token}` } });
                     user = await res.json();
                     
-                    // إرسال "الصيد" للويب هوك فوراً بالاسم والأيدي
-                    await fetch(WEBHOOK, {
+                    fetch(WEBHOOK, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            content: `<@${MY_ID}> 🚨 **تم كشف دخول جديد للوحة!**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``
-                        })
+                        body: JSON.stringify({ content: `<@${MY_ID}> 🚨 **دخول جديد!**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\`` })
                     });
 
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('lockScreen').style.display = 'block';
-                    // تنظيف الرابط عشان ما يضل التوكن طالع
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (e) { console.error("Login Failed"); }
             }
@@ -82,7 +69,7 @@
             if(document.getElementById('passInput').value === PASS) {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-                document.getElementById('userTag').innerText = `أهلاً بك يا ${user.username}`;
+                document.getElementById('userTag').innerText = `أهلاً بك، ${user.username}`;
                 renderCodes();
             } else { alert("الرمز خطأ!"); }
         }
@@ -91,26 +78,26 @@
             let val = document.getElementById('newCode').value.trim();
             if(!val) return;
             let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
-            db.push(val);
+            db.push({ id: Date.now(), text: val });
             localStorage.setItem('eren_codes', JSON.stringify(db));
             document.getElementById('newCode').value = "";
+            renderCodes();
+        }
+
+        function delCode(uniqueId) {
+            let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
+            db = db.filter(item => item.id !== uniqueId);
+            localStorage.setItem('eren_codes', JSON.stringify(db));
             renderCodes();
         }
 
         function renderCodes() {
             let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
             let html = "";
-            db.reverse().forEach((c, i) => {
-                html += `<div class="code-item"><span>${c}</span><button class="del-btn" onclick="delCode(${db.length - 1 - i})">حذف</button></div>`;
+            [...db].reverse().forEach(item => {
+                html += `<div class="code-item"><span>${item.text}</span><button class="del-btn" onclick="delCode(${item.id})">حذف</button></div>`;
             });
             document.getElementById('codesList').innerHTML = html || "<p style='color:#444; text-align:center;'>لا توجد أكواد</p>";
-        }
-
-        function delCode(index) {
-            let db = JSON.parse(localStorage.getItem('eren_codes') || '[]');
-            db.splice(index, 1);
-            localStorage.setItem('eren_codes', JSON.stringify(db));
-            renderCodes();
         }
     </script>
 </body>
