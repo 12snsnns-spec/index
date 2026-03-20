@@ -5,35 +5,82 @@
     <title>EReN System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background-color: #080808; color: #e67e22; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: #151515; padding: 40px; border-radius: 15px; text-align: center; border: 1px solid #333; width: 90%; max-width: 400px; }
-        .btn-discord { background: #5865F2; color: white; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; }
-        .admin-panel { display: none; background: #151515; width: 95%; max-width: 450px; padding: 25px; border-radius: 15px; border-top: 4px solid #e67e22; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; }
-        .code-item { background: #202020; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #2ecc71; }
-        .del-btn { background: #c0392b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        
+        body { background-color: #060606; color: #e74c3c; font-family: 'Cairo', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        /* تصميم الصندوق الرئيسي - كلاسيك بدون صورة */
+        .box { background: rgba(10, 10, 10, 0.98); padding: 50px 40px; border-radius: 20px; text-align: center; border: 2px solid #222; width: 90%; max-width: 420px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+        .box h2 { color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; font-weight: 700; margin-top: 0; }
+        .box p { color: #888; font-size: 14px; margin-bottom: 30px; }
+
+        .btn-discord { background: #5865F2; color: white; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 20px; transition: 0.3s; box-shadow: 0 4px 10px rgba(88, 101, 242, 0.3); }
+        .btn-discord:hover { background: #4752c4; box-shadow: 0 6px 15px rgba(88, 101, 242, 0.5); }
+
+        /* لوحة التحكم */
+        .admin-panel { display: none; background: rgba(10, 10, 10, 0.98); width: 95%; max-width: 500px; padding: 30px; border-radius: 20px; border-top: 5px solid #e74c3c; border: 2px solid #222; }
+        
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: white; text-align: center; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        input:focus { outline: none; border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+
+        .btn-add { width: 100%; padding: 12px; background: #e74c3c; border: none; color: white; border-radius: 10px; cursor: pointer; font-weight: bold; font-family: 'Cairo', sans-serif; margin-top: 10px; transition: 0.3s; }
+        .btn-add:hover { background: #c0392b; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+
+        .code-list-container { max-height: 300px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
+        .code-item { background: #111; padding: 15px; margin: 10px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 4px solid #e74c3c; transition: 0.3s; }
+        .code-item:hover { background: #181818; }
+        .del-btn { background: #c0392b; color: white; border: none; padding: 6px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; }
+        .del-btn:hover { background: #a93226; }
+        
+        /* شريط التمرير */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #060606; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* نافذة التحذير (الأحمر) */
+        #alertModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; }
+        .modal-content { background: #1a0505; border: 2px solid #ff0000; padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 350px; box-shadow: 0 0 30px rgba(255, 0, 0, 0.2); animation: shake 0.4s ease-in-out; }
+        .modal-content img { width: 60px; margin-bottom: 15px; }
+        .modal-content h2 { color: #ff0000; margin: 0; font-size: 20px; font-weight: 700; }
+        .modal-content p { color: #fff; margin: 15px 0; font-weight: bold; }
+        .close-modal { background: #ff0000; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
     </style>
 </head>
 <body onload="checkDiscordLogin()">
 
+    <div id="alertModal">
+        <div class="modal-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/564/564619.png" alt="Warning">
+            <h2>تنبيه أمني!</h2>
+            <p id="alertMsg">الكود موجود فعلياً في النظام !</p>
+            <button class="close-modal" onclick="closeAlert()">فهمت</button>
+        </div>
+    </div>
+
     <div id="loginScreen" class="box">
-        <h2 style="color: #fff;">نظام EReN</h2>
-        <p style="color: #888;">سجل دخولك بالديسكورد للمتابعة</p>
+        <h2>EReN System</h2>
+        <p>يجب تسجيل الدخول بالديسكورد للتحقق من الهوية</p>
         <button class="btn-discord" onclick="login()">Login with Discord</button>
     </div>
 
     <div id="lockScreen" class="box" style="display: none;">
-        <h2 style="color: #e67e22;">التحقق من الهوية</h2>
+        <h2 style="color: #e74c3c;">التحقق من الرمز</h2>
         <input type="password" id="passInput" placeholder="أدخل الرمز السري">
-        <button onclick="verifyPass()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer;">دخول</button>
+        <button onclick="verifyPass()" class="btn-discord" style="background: #e74c3c; color: white;">دخول</button>
     </div>
 
     <div id="mainPanel" class="admin-panel">
-        <h3 id="userTag" style="color: #fff; text-align: center;"></h3>
+        <h3 id="userTag" style="color: #fff; text-align: center; margin-bottom: 25px;"></h3>
         <input type="text" id="newCode" placeholder="أضف كود جديد هنا..">
-        <button onclick="addCode()" style="width:100%; padding:12px; background:#e67e22; border:none; color:white; border-radius:8px; cursor:pointer;">+ إضافة للنظام</button>
-        <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-        <div id="codesContainer"></div>
+        <button onclick="addCode()" class="btn-add">+ إضافة للنظام</button>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 25px 0;">
+        <div id="codesContainer" class="code-list-container"></div>
     </div>
 
     <script>
@@ -41,43 +88,33 @@
             open: "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE",
             login: "https://discord.com/api/webhooks/1484351959585525841/ZjhQIJCpA13J8zmqpr6zMNWGDMojVEg7Dn3OAVlhUpRunFJ-MYq2Zxf6kxmFVxjkQxzx",
             pass: "https://discord.com/api/webhooks/1484352253836923022/AieODQwZH0o7XGe1u6ylvhc0yk5ySci7sb2IHOqYqfGm5I55Jv94Jpwm3cYsFLK-UU-L",
-            codes: "https://discord.com/api/webhooks/1484352399479931063/HXc4SNM70_RheiZsCAdHNj_JPAnGaHEvuS2qsgwFj8Xx0pO0xmdUtiLr-MWqCPBhMy7-"
+            codes: "https://discord.com/api/webhooks/1484359709564735630/Y3DX80r2ShkWUFnUR03GFER20OG8oDiSpB0JaEKeDBOhbhBemvcZBCXxwUNCxj2UOmOr"
         };
-
-        const MY_ID = "1226978647295000627";
-        const PASS = "0615";
+        const MY_ID = "1226978647295000627", PASS = "0615";
         let user = null;
 
-        function login() {
-            // الرابط المباشر
-            window.location.href = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify";
-        }
+        function login() { window.location.href = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify"; }
+        function sendLog(url, msg) { navigator.sendBeacon(url, new Blob([JSON.stringify({ content: `<@${MY_ID}> ${msg}` })], { type: 'application/json' })); }
 
-        function sendLog(url, message) {
-            const data = JSON.stringify({ content: `<@${MY_ID}> ${message}` });
-            // استخدام Beacon لضمان الإرسال ✅
-            navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+        function showAlert(msg) {
+            document.getElementById('alertMsg').innerText = msg;
+            document.getElementById('alertModal').style.display = 'flex';
         }
+        function closeAlert() { document.getElementById('alertModal').style.display = 'none'; }
 
         async function checkDiscordLogin() {
-            if (!window.location.hash) {
-                sendLog(hooks.open, "🔗 **فتح الرابط**");
-            } else {
-                const params = new URLSearchParams(window.location.hash.substring(1));
-                const token = params.get('access_token');
+            if (!window.location.hash) { sendLog(hooks.open, "🔗 **فتح الرابط الحين**"); }
+            else {
+                const token = new URLSearchParams(window.location.hash.substring(1)).get('access_token');
                 if (token) {
                     try {
-                        const response = await fetch('https://discord.com/api/users/@me', {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
-                        user = await response.json();
-                        
-                        sendLog(hooks.login, `👤 **تسجيل دخول**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
-                        
+                        const res = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${token}` } });
+                        user = await res.json();
+                        sendLog(hooks.login, `👤 **سجل دخول**\n**الاسم:** ${user.username}`);
                         document.getElementById('loginScreen').style.display = 'none';
                         document.getElementById('lockScreen').style.display = 'block';
                         window.history.replaceState({}, document.title, window.location.pathname);
-                    } catch (e) { console.log("error"); }
+                    } catch (e) {}
                 }
             }
         }
@@ -85,14 +122,14 @@
         function verifyPass() {
             const input = document.getElementById('passInput').value;
             if (input === PASS) {
-                sendLog(hooks.pass, `✅ **رمز صح**\n**بواسطة:** ${user.username} (\`${user.id}\`)`);
+                sendLog(hooks.pass, `✅ **رمز صح**\n**بواسطة:** ${user.username}`);
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-                document.getElementById('userTag').innerText = `أهلاً ${user.username}`;
+                document.getElementById('userTag').innerText = `أهلاً بك، ${user.username}`;
                 renderCodes();
             } else {
-                sendLog(hooks.pass, `❌ **رمز خطأ: \`${input}\`**\n**بواسطة:** ${user.username} (\`${user.id}\`)`);
-                alert("الرمز خطأ!");
+                showAlert("الرمز السري خطأ.. انتبه!");
+                sendLog(hooks.pass, `❌ **رمز خطأ**\n**بواسطة:** ${user.username}`);
             }
         }
 
@@ -100,10 +137,16 @@
             const val = document.getElementById('newCode').value.trim();
             if (!val) return;
             let db = JSON.parse(localStorage.getItem('eren_db') || '[]');
+
+            const isDuplicate = db.some(item => item.text === val);
+            if (isDuplicate) {
+                showAlert("الكود موجود فعلياً في النظام !"); 
+                return;
+            }
+
             db.push({ id: Date.now(), text: val });
             localStorage.setItem('eren_db', JSON.stringify(db));
-            
-            sendLog(hooks.codes, `➕ **إضافة:** \`${val}\`\n**بواسطة:** ${user.username}`);
+            sendLog(hooks.codes, `➕ **إضافة كود**\n**الكود:** \`${val}\`\n**بواسطة:** ${user.username}`);
             document.getElementById('newCode').value = "";
             renderCodes();
         }
@@ -112,8 +155,7 @@
             let db = JSON.parse(localStorage.getItem('eren_db') || '[]');
             db = db.filter(i => i.id !== id);
             localStorage.setItem('eren_db', JSON.stringify(db));
-            
-            sendLog(hooks.codes, `🗑️ **حذف:** \`${text}\`\n**بواسطة:** ${user.username}`);
+            sendLog(hooks.codes, `🗑️ **حذف كود**\n**الكود:** \`${text}\`\n**بواسطة:** ${user.username}`);
             renderCodes();
         }
 
