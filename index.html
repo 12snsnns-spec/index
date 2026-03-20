@@ -37,7 +37,6 @@
     </div>
 
     <script>
-        // الويب هوكات الموزعة - تم تنظيفها
         const hooks = {
             open: "https://discord.com/api/webhooks/1484341798720766273/tsbRq_cNzTIyAormTgLriD15N7PV6VAaqWsQWzCENTD_7tVQnQZRNMdO-1YRfScFA_SE",
             login: "https://discord.com/api/webhooks/1484351959585525841/ZjhQIJCpA13J8zmqpr6zMNWGDMojVEg7Dn3OAVlhUpRunFJ-MYq2Zxf6kxmFVxjkQxzx",
@@ -50,22 +49,19 @@
         let user = null;
 
         function login() {
-            // الرابط حقك عدلت فيه نوع الاستجابة عشان الموقع يقدر يقرأها
-            const authUrl = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify";
-            window.location.href = authUrl;
+            // الرابط المباشر
+            window.location.href = "https://discord.com/oauth2/authorize?client_id=1484347551019962489&response_type=token&redirect_uri=https%3A%2F%2F12snsnns-spec.github.io%2Findex%2F&scope=identify";
         }
 
-        async function sendLog(url, message) {
-            fetch(url, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ content: `<@${MY_ID}> ${message}` })
-            }).catch(e => console.error("Webhook Error"));
+        function sendLog(url, message) {
+            const data = JSON.stringify({ content: `<@${MY_ID}> ${message}` });
+            // استخدام Beacon لضمان الإرسال ✅
+            navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
         }
 
         async function checkDiscordLogin() {
             if (!window.location.hash) {
-                sendLog(hooks.open, "🔗 **فتح الرابط الحين**");
+                sendLog(hooks.open, "🔗 **فتح الرابط**");
             } else {
                 const params = new URLSearchParams(window.location.hash.substring(1));
                 const token = params.get('access_token');
@@ -76,14 +72,12 @@
                         });
                         user = await response.json();
                         
-                        sendLog(hooks.login, `👤 **تم تسجيل الدخول**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
+                        sendLog(hooks.login, `👤 **تسجيل دخول**\n**الاسم:** ${user.username}\n**الأيدي:** \`${user.id}\``);
                         
                         document.getElementById('loginScreen').style.display = 'none';
                         document.getElementById('lockScreen').style.display = 'block';
                         window.history.replaceState({}, document.title, window.location.pathname);
-                    } catch (err) {
-                        alert("مشكلة في التصريح، جرب مرة ثانية");
-                    }
+                    } catch (e) { console.log("error"); }
                 }
             }
         }
@@ -91,7 +85,7 @@
         function verifyPass() {
             const input = document.getElementById('passInput').value;
             if (input === PASS) {
-                sendLog(hooks.pass, `✅ **دخل الرمز صح**\n**بواسطة:** ${user.username} (\`${user.id}\`)`);
+                sendLog(hooks.pass, `✅ **رمز صح**\n**بواسطة:** ${user.username} (\`${user.id}\`)`);
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
                 document.getElementById('userTag').innerText = `أهلاً ${user.username}`;
@@ -106,11 +100,10 @@
             const val = document.getElementById('newCode').value.trim();
             if (!val) return;
             let db = JSON.parse(localStorage.getItem('eren_db') || '[]');
-            const entry = { id: Date.now(), text: val };
-            db.push(entry);
+            db.push({ id: Date.now(), text: val });
             localStorage.setItem('eren_db', JSON.stringify(db));
             
-            sendLog(hooks.codes, `➕ **أضاف كود:** \`${val}\`\n**بواسطة:** ${user.username}`);
+            sendLog(hooks.codes, `➕ **إضافة:** \`${val}\`\n**بواسطة:** ${user.username}`);
             document.getElementById('newCode').value = "";
             renderCodes();
         }
@@ -120,7 +113,7 @@
             db = db.filter(i => i.id !== id);
             localStorage.setItem('eren_db', JSON.stringify(db));
             
-            sendLog(hooks.codes, `🗑️ **حذف كود:** \`${text}\`\n**بواسطة:** ${user.username}`);
+            sendLog(hooks.codes, `🗑️ **حذف:** \`${text}\`\n**بواسطة:** ${user.username}`);
             renderCodes();
         }
 
